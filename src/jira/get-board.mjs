@@ -34,7 +34,7 @@ id: ${board.id}
 name: ${board.name}
 `
 
-console.log(msg)
+echo(msg)
 
 const nextActionMessage = `
 ${ chalk.blue('Next Action:') }
@@ -42,4 +42,4 @@ ${ chalk.blue('Next Action:') }
   .env ファイルの'JIRA_BOARD_ID'にIDを設定することでスクリプトの入力スキップになります。
 `;
 
-console.log(nextActionMessage);
+echo(nextActionMessage);

@@ -7,6 +7,7 @@
  * 前提: .envにJIRA接続設定をしておく。
  */
 
+import 'zx/globals'
 $.verbose = false
 require('dotenv').config()
 
@@ -34,5 +35,5 @@ https://${process.env.JIRA_HOST}/browse/${s.key}
 
 ---
 `
-  console.log(msg)
+  echo(msg)
 })
