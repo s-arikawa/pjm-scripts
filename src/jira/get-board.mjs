@@ -17,7 +17,7 @@ if (!projectKeyOrId) {
 }
 echo(chalk.green(`プロジェクトのキーは ${chalk.underline(projectKeyOrId)} `))
 
-const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } };
+const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } }
 const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/board?projectKeyOrId=${projectKeyOrId}`
 const response = await fetch(url, options)
 const body = await response.json()
@@ -33,13 +33,11 @@ name: ${board.location.displayName}
 id: ${board.id}
 name: ${board.name}
 `
-
 echo(msg)
 
 const nextActionMessage = `
 ${ chalk.blue('Next Action:') }
   ボードのIDが分かったことで、様々な情報取得スクリプトが利用できます。
-  .env ファイルの'JIRA_BOARD_ID'にIDを設定することでスクリプトの入力スキップになります。
-`;
-
-echo(nextActionMessage);
+  .env ファイルの'JIRA_BOARD_ID'にIDを設定することでスクリプトの${chalk.underline('入力スキップ')}になります。
+  ex. JIRA_BOARD_ID=${board.id}`
+echo(nextActionMessage)
