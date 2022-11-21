@@ -1,0 +1,23 @@
+{
+  "name": "pjm-scripts",
+  "version": "1.0.0",
+  "description": "Project Management Scripts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s-arikawa/pjm-scripts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/s-arikawa/pjm-scripts/issues"
+  },
+  "homepage": "https://github.com/s-arikawa/pjm-scripts#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "zx": "^7.1.1"
+  }
+}
