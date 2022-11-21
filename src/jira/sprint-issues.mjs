@@ -16,7 +16,9 @@ const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/sprint/920/issue` /
 const response = await fetch(`${url}?fields=summary%2C%20assignee%2C%20issuetype%2C%20status&maxResults=1000`, options)
 const body = await response.json()
 
-const summary = body.issues.map(i => {
+const summary = body.issues
+  .sort((a,b) => a.id - b.id) // sort id asc
+  .map(i => {
   return {
     key: i.key,
     summary: i.fields.summary,
