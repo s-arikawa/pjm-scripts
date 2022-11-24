@@ -42,9 +42,7 @@ function paginated_fetch_issues(url, params, startAt = 0, previousResponse = [])
   params.startAt = startAt
   const query = new URLSearchParams(params)
   return fetch(`${url}?${query}`, options)
-    .then(response => {
-      return response.json()
-    })
+    .then(response => response.json())
     .then(jsonResponse => jsonResponse.issues)
     .then(newResponse => {
       const response = [...previousResponse, ...newResponse]; // Combine the two arrays
@@ -84,7 +82,10 @@ epics.forEach(epic => {
     .map(i => i.fields.customfield_13255 ?? 0)
     .reduce((a, b) => a + b, 0)
 
-  echo`${epic.key} ${epic.name} | ${spDoneAll}/${spAll}`
+  // TODO パーセント表記
+  const sa = spDoneAll / spAll
+  const percent = Math.round(sa * 100) / 100 * 100;
+  echo`${epic.key} ${epic.name} | 総数 ${spAll} ( - ) ／消化済数 ${spDoneAll}（ - ）／残数 ${spAll - spDoneAll}（ - ） | ( ${percent} % )`
 })
 
 // status - name = 完了
