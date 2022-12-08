@@ -8,25 +8,73 @@
  */
 
 import 'zx/globals'
+
 $.verbose = false
 require('dotenv').config()
 
-const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } };
-const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/sprint/920/issue` // TODO sprint id を指定する方法
-const response = await fetch(`${url}?fields=summary%2C%20assignee%2C%20issuetype%2C%20status&maxResults=1000`, options)
-const body = await response.json()
+function paginated_fetch_issues(url, params, startAt = 0, previousResponse = []) {
+  const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } }
+  params.startAt = startAt
+  const query = new URLSearchParams(params)
+  return fetch(`${url}?${query}`, options)
+    .then(response => response.json())
+    .then(jsonResponse => jsonResponse.issues)
+    .then(newResponse => {
+      const response = [...previousResponse, ...newResponse]; // Combine the two arrays
+      if (newResponse.length !== 0) {
+        startAt += newResponse.length
+        return paginated_fetch_issues(url, params, startAt, response);
+      }
+      return response;
+    });
+}
 
-const summary = body.issues
-  .sort((a,b) => a.id - b.id) // sort id asc
-  .map(i => {
-  return {
-    key: i.key,
-    summary: i.fields.summary,
-    assignee: i.fields.assignee?.displayName,
-    issueType: i.fields.issuetype.name,
-    status: i.fields.status.name,
+const getIssuesForSprint = async (sprint_id) => {
+  const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/sprint/${sprint_id}/issue`
+  const params = {
+    fields: "summary, assignee, issuetype, status",
+    maxResults: 1000,
   }
-})
+  const issues = await paginated_fetch_issues(url, params)
+  return issues
+}
+
+const getActiveSprints = async (boardId) => {
+  const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/board/${boardId}/sprint`
+  const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } }
+  const params = { maxResults: 1000, state: 'active' }
+  const query = new URLSearchParams(params)
+
+  const response = await fetch(`${url}?${query}`, options)
+  const body = await response.json()
+
+  const sprints = body.values[0]
+  return sprints
+}
+
+
+// # Main Logic - START
+
+const boardId = process.env.JIRA_BOARD_ID
+
+// アクティブなスプリントIDを決める
+const activeSprint = await getActiveSprints(boardId)
+
+// スプリントに紐付く課題の一覧を取得する
+const issues = await getIssuesForSprint(activeSprint.id)
+
+// 課題の一覧をサマリーする
+const summary = issues
+  .sort((a, b) => a.id - b.id) // sort id asc
+  .map(i => {
+    return {
+      key: i.key,
+      summary: i.fields.summary,
+      assignee: i.fields.assignee?.displayName,
+      issueType: i.fields.issuetype.name,
+      status: i.fields.status.name,
+    }
+  })
 
 // URL format: https://${JIRA-HOST}/browse/${key}
 summary.forEach(s => {
