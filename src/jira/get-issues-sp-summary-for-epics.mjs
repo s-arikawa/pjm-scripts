@@ -8,7 +8,7 @@
  */
 
 import 'zx/globals'
-import { paginated_fetch_issues } from './jira-functions.mjs'
+import { paginatedFetchIssues } from './jira-functions.mjs'
 
 require('dotenv').config()
 $.verbose = false
@@ -46,7 +46,7 @@ const getIssuesForEpic = async (epicKey) => {
     jql: `parent = ${epicKey} ORDER BY created DESC`,
     fields: "summary, assignee, issuetype, status, customfield_13255" // customfield_13255 = Story point estimate
   }
-  const issues = await paginated_fetch_issues(url, params)
+  const issues = await paginatedFetchIssues(url, params)
   return issues
 }
 
