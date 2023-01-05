@@ -8,23 +8,14 @@
  */
 
 import 'zx/globals'
-import { paginatedFetchIssues, getSprintsFromBoard } from './jira-functions.mjs'
+import { getIssuesForSprint, getSprintsFromBoard } from './jira-functions.mjs'
 
 $.verbose = false
 require('dotenv').config()
 
-const getIssuesForSprint = async (sprint_id) => {
-  const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/sprint/${sprint_id}/issue`
-  const params = {
-    fields: "summary, assignee, issuetype, status",
-    maxResults: 1000,
-  }
-  const issues = await paginatedFetchIssues(url, params)
-  return issues
-}
-
 const getActiveSprints = async (boardId) => {
-  return getSprintsFromBoard(boardId, { state: 'active' })
+  const sprints = getSprintsFromBoard(boardId, { state: 'active' })
+  return sprints[0] // active は1件のみのはず
 }
 
 

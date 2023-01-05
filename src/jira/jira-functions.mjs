@@ -16,7 +16,7 @@ const paginatedFetchIssues = (url, params, startAt = 0, previousResponse = []) =
 }
 
 
-const getSprintsFromBoard = async (boardId, params) => {
+const getSprintsFromBoard = async (boardId, params = {}) => {
   const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/board/${boardId}/sprint`
   const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } }
   params.maxResults = 1000
@@ -25,8 +25,18 @@ const getSprintsFromBoard = async (boardId, params) => {
   const response = await fetch(`${url}?${query}`, options)
   const body = await response.json()
 
-  const sprints = body.values[0]
+  const sprints = body.values
   return sprints
 }
 
-export {paginatedFetchIssues, getSprintsFromBoard}
+const getIssuesForSprint = async (sprint_id) => {
+  const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/sprint/${sprint_id}/issue`
+  const params = {
+    fields: "summary, assignee, issuetype, status",
+    maxResults: 1000,
+  }
+  const issues = await paginatedFetchIssues(url, params)
+  return issues
+}
+
+export {paginatedFetchIssues, getSprintsFromBoard, getIssuesForSprint}
