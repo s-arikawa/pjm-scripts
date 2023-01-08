@@ -49,6 +49,13 @@ targetSprints.forEach(sprint => {
   const allDoneSp = filteredIssues.filter((i) => _.includes(["完了", "CANCEL"], i.fields.status.name)).sumBy((i) => i.fields.customfield_13255)
   const allDoneCount = filteredIssues.filter((i) => _.includes(["完了", "CANCEL"], i.fields.status.name)).size()
   echo(`${_.padStart(`完了課題数: ${allDoneCount}`, 11)} | 課題数: ${_.padEnd(count, 3)} | コミットSP: ${_.padEnd(commitSp, 3)} | 完了SP: ${_.padEnd(allDoneSp, 3)}(${doneSp}, ${cancelSp})`)
+
+  // 計算した値を保存しておく
+  sprint.doneSp = doneSp
+  sprint.cancelSp = cancelSp
+  sprint.allDoneSp = allDoneSp
+  sprint.allDoneCount = allDoneCount
+
   echo(_.repeat('-', 110))
   // 課題を親Epicでグルーピングする
   const epicGroupIssues = _.groupBy(sprint.issues, (issue) => issue.fields?.parent?.fields?.summary ?? "no Epic")
@@ -56,7 +63,11 @@ targetSprints.forEach(sprint => {
   _.forIn(epicGroupIssues, (val, key) => {
     const epicSummary = summary(sprint.id, val)
     echo(`${_.padEnd(key, 16)} | 課題数: ${_.padEnd(epicSummary.count, 3)} | コミットSP: ${_.padEnd(epicSummary.commitSp, 3)} | 完了SP: ${_.padEnd(epicSummary.doneSp, 3)}`)
+    // 計算した値を保存
+    _.assignIn(val, epicSummary)
   })
+  // エピックごとにサマった情報を保存しておく
+  sprint.epicGroupIssues = epicGroupIssues
 
   echo('')
 })
@@ -77,4 +88,37 @@ function summary(sprintId, issues) {
 
   return { count, commitSp, doneSp }
 }
+
+
+echo(_.repeat('=', 110))
+
+// ベロシティを算出
+
+// # スプリント単位
+
+const velocityTargetSprints = _.take(targetSprints, 5)
+const allDoneSpForSprints = _.map(velocityTargetSprints, 'allDoneSp')
+echo(`ベロシティ ${_.sum(allDoneSpForSprints) / 5} = ( ${_.join(allDoneSpForSprints, ' + ')} = ${_.sum(allDoneSpForSprints)} / 5 )`)
+
+
+const resultHash = {}
+_.forIn(velocityTargetSprints, (sprint) => {
+  // echo(sprint.name)
+  _.forIn(sprint.epicGroupIssues, (epic, key) => {
+    // echo(`  - ${key} . ${epic.doneSp}`)
+    if (epic.doneSp === 0) {
+      return
+    }
+    if (_.has(resultHash, key)) {
+      resultHash[key].doneSp += epic.doneSp
+      resultHash[key].count += 1
+    } else {
+      resultHash[key] = { doneSp: epic.doneSp, count: 1 }
+    }
+  })
+})
+
+_.forIn(resultHash, (val, key) => {
+  echo(`${_.padStart(key, 16)} ベロシティ ${_.padStart(_.round(val.doneSp / val.count, 2), 5)} = ( ${_.padStart(val.doneSp, 3)} / ${val.count} )`)
+})
 
