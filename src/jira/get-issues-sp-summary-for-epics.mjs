@@ -8,7 +8,7 @@
  */
 
 import 'zx/globals'
-import { paginatedFetchIssues } from './jira-functions.mjs'
+import {getAllEpics, getIssuesForEpic, paginatedFetchIssues} from './jira-functions.mjs'
 
 require('dotenv').config()
 $.verbose = false
@@ -21,34 +21,6 @@ if (!boardId) {
   boardId = await question(chalk.green('ボードのIDを入力してください。'))
 }
 echo(chalk.green(`ボードのIDは ${chalk.underline(boardId)} `))
-
-// エピックの一覧を取得する
-const getAllEpics = async (boardId) => {
-  const options = { method: 'GET', headers: { Authorization: process.env.JIRA_API_TOKEN } }
-  const url = `https://${process.env.JIRA_HOST}/rest/agile/1.0/board/${boardId}/epic`
-  const response = await fetch(url, options)
-  const body = await response.json()
-
-  return body.values.map(epic => {
-    return {
-      key: epic.key,
-      name: epic.summary,
-      url: `https://${process.env.JIRA_HOST}/browse/${epic.key}`
-    }
-  })
-}
-
-// エピックに紐付くIssue 課題を取得する
-const getIssuesForEpic = async (epicKey) => {
-  const url = `https://${process.env.JIRA_HOST}/rest/api/2/search`
-  const params = {
-    maxResults: 100,
-    jql: `parent = ${epicKey} ORDER BY created DESC`,
-    fields: "summary, assignee, issuetype, status, customfield_13255" // customfield_13255 = Story point estimate
-  }
-  const issues = await paginatedFetchIssues(url, params)
-  return issues
-}
 
 // エピック一覧取得
 const epics = await getAllEpics(boardId)

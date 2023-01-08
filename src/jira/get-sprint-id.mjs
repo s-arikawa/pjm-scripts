@@ -22,7 +22,7 @@ const sprints = await getSprintsFromBoard(boardId)
 
 sprints.forEach((sprint) => {
   const startDate = dayjs(sprint.startDate).format('YYYY-MM-DD')
-  const endDate = dayjs(sprint.endDate).format('YYYY-MM-DD Z')
+  const endDate = dayjs(sprint.endDate).format('YYYY-MM-DD')
   const completeDate = dayjs(sprint.completeDate).format('YYYY-MM-DD')
 
   echo(`${sprint.id}: ${sprint.name} | start - end : ${startDate} - ${endDate} | completed : ${completeDate}`)
